@@ -1,7 +1,7 @@
 const API_ENDPOINTS = {
     codeforces: "https://codeforces.com/api/contest.list?gym=false",
-    codechef: "https://www.kontests.net/api/v1/code_chef",
-    atcoder: "https://www.kontests.net/api/v1/at_coder"
+    codechef: "https://kontests.net/api/v1/code_chef",
+    atcoder: "https://kontests.net/api/v1/at_coder"
 };
 
 async function fetchContests(platform) {
@@ -11,9 +11,17 @@ async function fetchContests(platform) {
         
         let contests;
         if (platform === "codeforces") {
-            contests = data.result.filter(contest => contest.phase === "BEFORE");
+            contests = data.result.filter(contest => contest.phase === "BEFORE").map(contest => ({
+                name: contest.name,
+                url: `https://codeforces.com/contest/${contest.id}`,
+                start_time: new Date(contest.startTimeSeconds * 1000).toISOString()
+            }));
         } else {
-            contests = data;
+            contests = data.map(contest => ({
+                name: contest.name,
+                url: contest.url,
+                start_time: contest.start_time
+            }));
         }
         
         return contests;
@@ -32,7 +40,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 });
 
-// Fetch all contests periodically and store them
 async function fetchAllContests() {
     const allContests = {};
     for (const platform of Object.keys(API_ENDPOINTS)) {
@@ -40,6 +47,7 @@ async function fetchAllContests() {
             allContests[platform] = await fetchContests(platform);
         } catch (error) {
             console.error(`Error fetching ${platform} contests:`, error);
+            allContests[platform] = [];
         }
     }
     chrome.storage.local.set({ contests: allContests }, () => {
@@ -47,14 +55,11 @@ async function fetchAllContests() {
     });
 }
 
-// Fetch contests when the extension is installed or updated
 chrome.runtime.onInstalled.addListener(() => {
     fetchAllContests();
-    // Set up alarm to fetch contests periodically
     chrome.alarms.create('fetchAllContests', { periodInMinutes: 60 });
 });
 
-// Fetch contests when the alarm fires
 chrome.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === 'fetchAllContests') {
         fetchAllContests();

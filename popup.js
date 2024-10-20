@@ -28,32 +28,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const contestElement = document.createElement("div");
             contestElement.className = "contest-item";
 
-            const contestUrl = getContestUrl(contest, platform);
-            const startTime = getStartTime(contest, platform);
-
             contestElement.innerHTML = `
-                <a href="${contestUrl}" target="_blank">
+                <a href="${contest.url}" target="_blank">
                     <strong>${contest.name}</strong><br>
-                    Start Time: ${new Date(startTime).toLocaleString()}
+                    Start Time: ${new Date(contest.start_time).toLocaleString()}
                 </a>
             `;
             contestList.appendChild(contestElement);
         });
-    }
-
-    function getContestUrl(contest, platform) {
-        switch (platform) {
-            case "codeforces":
-                return `https://codeforces.com/contest/${contest.id}`;
-            case "codechef":
-            case "atcoder":
-                return contest.url;
-            default:
-                return "#";
-        }
-    }
-
-    function getStartTime(contest, platform) {
-        return platform === "codeforces" ? contest.startTimeSeconds * 1000 : new Date(contest.start_time).getTime();
     }
 });
