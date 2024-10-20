@@ -1,0 +1,62 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 10px;
+    width: 320px;
+    background-color: #f0f0f0;
+}
+
+h1 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.platforms {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+button {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+    width: 30%;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+#contest-list {
+    max-height: 400px;
+    overflow-y: auto;
+    background-color: #ffffff;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.contest-item {
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #ddd;
+    transition: background-color 0.2s;
+}
+
+.contest-item:hover {
+    background-color: #e9ecef;
+}
+
+a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+a:hover {
+    text-decoration: underline;
+}
