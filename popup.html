@@ -4,18 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CP Calendar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Upcoming Contests</h1>
-    <div class="platforms">
-        <button id="codeforces-btn">Codeforces</button>
-        <button id="codechef-btn">CodeChef</button>
-        <button id="atcoder-btn">AtCoder</button>
+    <div class="container">
+        <header>
+            <h1>CP Calendar</h1>
+            <div class="theme-toggle">
+                <input type="checkbox" id="theme-switch" class="theme-switch">
+                <label for="theme-switch" class="theme-switch-label"></label>
+            </div>
+        </header>
+        
+        <nav class="platforms">
+            <button id="all-btn" class="platform-btn active">All</button>
+            <button id="codeforces-btn" class="platform-btn">Codeforces</button>
+            <button id="codechef-btn" class="platform-btn">CodeChef</button>
+            <button id="atcoder-btn" class="platform-btn">AtCoder</button>
+        </nav>
+        
+        <main>
+            <div class="filters">
+                <input type="text" id="search-input" placeholder="Search contests...">
+                <select id="duration-filter">
+                    <option value="all">All Durations</option>
+                    <option value="short">Short (&lt; 2h)</option>
+                    <option value="medium">Medium (2-5h)</option>
+                    <option value="long">Long (&gt; 5h)</option>
+                </select>
+            </div>
+            
+            <div id="contest-list" class="contest-list">
+                <div class="loader">Loading contests...</div>
+            </div>
+        </main>
+        
+        <footer>
+            <button id="refresh-btn" class="refresh-btn">Refresh Contests</button>
+            <p>Last updated: <span id="last-updated">Never</span></p>
+        </footer>
     </div>
-    <div id="contest-list">
-        Loading contests...
-    </div>
+    
     <script src="popup.js"></script>
 </body>
 </html>
