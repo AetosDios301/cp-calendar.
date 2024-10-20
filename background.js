@@ -1,5 +1,5 @@
 const API_ENDPOINTS = {
-    codeforces: "https://codeforces.com/api/contest.list?gym=false",
+    codeforces: "https://codeforces.com/api/contest.list",
     codechef: "https://kontests.net/api/v1/code_chef",
     atcoder: "https://kontests.net/api/v1/at_coder"
 };
@@ -11,16 +11,19 @@ async function fetchContests(platform) {
         
         let contests;
         if (platform === "codeforces") {
-            contests = data.result.filter(contest => contest.phase === "BEFORE").map(contest => ({
-                name: contest.name,
-                url: `https://codeforces.com/contest/${contest.id}`,
-                start_time: new Date(contest.startTimeSeconds * 1000).toISOString()
-            }));
+            contests = data.result
+                .filter(contest => contest.phase === "BEFORE")
+                .map(contest => ({
+                    name: contest.name,
+                    url: `https://codeforces.com/contest/${contest.id}`,
+                    start_time: new Date(contest.startTimeSeconds * 1000).toISOString(),
+                    end_time: new Date((contest.startTimeSeconds + contest.durationSeconds) * 1000).toISOString(),
+                    platform: "Codeforces"
+                }));
         } else {
             contests = data.map(contest => ({
-                name: contest.name,
-                url: contest.url,
-                start_time: contest.start_time
+                ...contest,
+                platform: platform.charAt(0).toUpperCase() + platform.slice(1)
             }));
         }
         
@@ -40,28 +43,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 });
 
-async function fetchAllContests() {
-    const allContests = {};
-    for (const platform of Object.keys(API_ENDPOINTS)) {
-        try {
-            allContests[platform] = await fetchContests(platform);
-        } catch (error) {
-            console.error(`Error fetching ${platform} contests:`, error);
-            allContests[platform] = [];
-        }
-    }
-    chrome.storage.local.set({ contests: allContests }, () => {
-        console.log('All contests data saved');
-    });
-}
-
-chrome.runtime.onInstalled.addListener(() => {
-    fetchAllContests();
-    chrome.alarms.create('fetchAllContests', { periodInMinutes: 60 });
-});
+chrome.alarms.create('fetchContests', { periodInMinutes: 60 });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
-    if (alarm.name === 'fetchAllContests') {
-        fetchAllContests();
+    if (alarm.name === 'fetchContests') {
+        Object.keys(API_ENDPOINTS).forEach(platform => {
+            fetchContests(platform)
+                .then(contests => {
+                    chrome.storage.local.set({ [`${platform}Contests`]: contests }, () => {
+                        console.log(`${platform} contests updated`);
+                    });
+                })
+                .catch(error => console.error(`Error updating ${platform} contests:`, error));
+        });
     }
 });

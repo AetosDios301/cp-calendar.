@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const contestList = document.getElementById("contest-list");
-    const platforms = ["all", "codeforces", "codechef", "atcoder"];
-    let allContests = [];
+    const platforms = ["codeforces", "codechef", "atcoder"];
+    let currentPlatform = "codeforces";
 
     // Theme toggle
     const themeSwitch = document.getElementById("theme-switch");
@@ -24,7 +24,8 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.addEventListener("click", () => {
             document.querySelector(".platform-btn.active").classList.remove("active");
             btn.classList.add("active");
-            filterContests();
+            currentPlatform = platform;
+            fetchContests(platform);
         });
     });
 
@@ -38,36 +39,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Refresh button
     const refreshBtn = document.getElementById("refresh-btn");
-    refreshBtn.addEventListener("click", fetchAllContests);
+    refreshBtn.addEventListener("click", () => fetchContests(currentPlatform));
 
-    function fetchAllContests() {
+    function fetchContests(platform) {
         contestList.innerHTML = '<div class="loader">Loading contests...</div>';
         
-        chrome.runtime.sendMessage({ action: "fetchAllContests" }, (response) => {
+        chrome.runtime.sendMessage({ action: "fetchContests", platform: platform }, (response) => {
             if (response.error) {
                 console.error("Error fetching contests:", response.error);
                 contestList.innerHTML = "Error fetching contests.";
             } else {
-                allContests = response.contests;
+                displayContests(response.contests);
                 updateLastUpdated();
-                filterContests();
             }
         });
     }
 
     function filterContests() {
-        const activePlatform = document.querySelector(".platform-btn.active").id.replace("-btn", "");
         const searchTerm = searchInput.value.toLowerCase();
         const durationValue = durationFilter.value;
 
-        const filteredContests = allContests.filter(contest => {
-            const matchesPlatform = activePlatform === "all" || contest.platform === activePlatform;
-            const matchesSearch = contest.name.toLowerCase().includes(searchTerm);
-            const matchesDuration = durationValue === "all" || matchesContestDuration(contest, durationValue);
-            return matchesPlatform && matchesSearch && matchesDuration;
-        });
+        chrome.storage.local.get(`${currentPlatform}Contests`, (data) => {
+            const contests = data[`${currentPlatform}Contests`] || [];
+            const filteredContests = contests.filter(contest => {
+                const matchesSearch = contest.name.toLowerCase().includes(searchTerm);
+                const matchesDuration = durationValue === "all" || matchesContestDuration(contest, durationValue);
+                return matchesSearch && matchesDuration;
+            });
 
-        displayContests(filteredContests);
+            displayContests(filteredContests);
+        });
     }
 
     function matchesContestDuration(contest, durationValue) {
@@ -92,7 +93,6 @@ document.addEventListener("DOMContentLoaded", () => {
             contestElement.className = "contest-item";
             contestElement.innerHTML = `
                 <h3>${contest.name}</h3>
-                <p>Platform: ${contest.platform}</p>
                 <p>Start: ${new Date(contest.start_time).toLocaleString()}</p>
                 <p>Duration: ${formatDuration(contest.start_time, contest.end_time)}</p>
                 <a href="${contest.url}" target="_blank">Go to contest</a>
@@ -112,5 +112,5 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Initial fetch
-    fetchAllContests();
+    fetchContests(currentPlatform);
 });
